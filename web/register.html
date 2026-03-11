@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <nav class="topbar panel">
+        <div class="topbar-nav">
+          <a href="/">Home</a>
+          <a href="/manage.html">Group setup</a>
+          <a href="/lesson.html">Lesson session</a>
+          <a href="/journal.html">Journal</a>
+        </div>
+        <a class="topbar-action" href="/">Login</a>
+      </nav>
+
+      <section class="layout">
+        <section class="panel">
+          <h1>User Registration</h1>
+          <p class="muted">Use your email as the login and choose a password with at least 8 characters.</p>
+
+          <form id="register-form" class="stack">
+            <label for="register-email">Email</label>
+            <input id="register-email" name="email" type="email" placeholder="teacher@example.com" required />
+
+            <label for="register-password">Password</label>
+            <input id="register-password" name="password" type="password" placeholder="At least 8 characters" required />
+
+            <button type="submit">Create Account</button>
+          </form>
+
+          <p id="status" class="status"></p>
+        </section>
+
+        <section class="panel panel-wide">
+          <h2>What this does</h2>
+          <p class="muted">This is a simple registration flow. The server saves the email and a hashed password in the database.</p>
+        </section>
+      </section>
+    </main>
+
+    <script src="/auth.js" defer></script>
+    <script src="/register.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class Journal Login</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell shell-home shell-narrow">
+      <nav class="topbar panel">
+        <div class="topbar-nav">
+          <a href="/" class="active">Home</a>
+        </div>
+        <a class="topbar-action active" href="/">Login</a>
+      </nav>
+
+      <section class="panel hero">
+        <h1>Class Journal</h1>
+        <p class="muted">Sign in with your email and password. If you do not have an account yet, open the registration page.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Login</h2>
+        <form id="login-form" class="stack">
+          <label for="login-email">Email</label>
+          <input id="login-email" name="email" type="email" placeholder="teacher@example.com" required />
+
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" placeholder="Your password" required />
+
+          <button type="submit">Login</button>
+        </form>
+
+        <p class="muted">No account yet? <a href="/register.html">Go to registration</a>.</p>
+        <p id="status" class="status"></p>
+      </section>
+    </main>
+
+    <script src="/auth.js" defer></script>
+    <script src="/login.js" defer></script>
+  </body>
+</html>

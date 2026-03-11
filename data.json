@@ -1,0 +1,132 @@
+{
+  "groups": [
+    {
+      "id": "6724798381a78398",
+      "name": "mk38",
+      "subject": "",
+      "students": [
+        {
+          "id": "47e233c09253a05a",
+          "name": "Andreev"
+        }
+      ],
+      "lessons": [
+        {
+          "date": "2026-03-05",
+          "comment": "",
+          "records": {
+            "47e233c09253a05a": {
+              "present": true,
+              "score": 5
+            }
+          }
+        },
+        {
+          "date": "2026-03-08",
+          "comment": "",
+          "records": {
+            "47e233c09253a05a": {
+              "present": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "ce2ec05f8afa5f62",
+      "name": "test_group",
+      "subject": "programming",
+      "students": [
+        {
+          "id": "12a770be4c84f681",
+          "name": "Ivanov"
+        },
+        {
+          "id": "2366698e29ada9a3",
+          "name": "Petrov"
+        },
+        {
+          "id": "32e00ddf1981930c",
+          "name": "Sidorov"
+        },
+        {
+          "id": "962fd0baff4dd84c",
+          "name": "Kuzin"
+        },
+        {
+          "id": "37a4e3e0425b35fe",
+          "name": "Stupin"
+        }
+      ],
+      "lessons": [
+        {
+          "date": "2026-03-06",
+          "comment": "",
+          "records": {
+            "12a770be4c84f681": {
+              "present": true,
+              "score": 3
+            },
+            "2366698e29ada9a3": {
+              "present": true,
+              "score": 5
+            },
+            "32e00ddf1981930c": {
+              "present": true
+            },
+            "37a4e3e0425b35fe": {
+              "present": false
+            },
+            "962fd0baff4dd84c": {
+              "present": true
+            }
+          }
+        },
+        {
+          "date": "2026-03-04",
+          "comment": "",
+          "records": {
+            "12a770be4c84f681": {
+              "present": true
+            },
+            "2366698e29ada9a3": {
+              "present": false
+            },
+            "32e00ddf1981930c": {
+              "present": false
+            },
+            "37a4e3e0425b35fe": {
+              "present": false
+            },
+            "962fd0baff4dd84c": {
+              "present": true,
+              "score": 4
+            }
+          }
+        },
+        {
+          "date": "2026-03-02",
+          "comment": "",
+          "records": {
+            "12a770be4c84f681": {
+              "present": true,
+              "score": 4
+            },
+            "2366698e29ada9a3": {
+              "present": false
+            },
+            "32e00ddf1981930c": {
+              "present": true
+            },
+            "37a4e3e0425b35fe": {
+              "present": true
+            },
+            "962fd0baff4dd84c": {
+              "present": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

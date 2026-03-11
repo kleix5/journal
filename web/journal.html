@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Journal</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <nav class="topbar panel">
+        <div class="topbar-nav">
+          <a href="/">Home</a>
+          <a href="/manage.html">Group setup</a>
+          <a href="/lesson.html">Lesson session</a>
+          <a href="/journal.html" class="active">Journal</a>
+        </div>
+        <a class="topbar-action" href="/">Login</a>
+      </nav>
+
+      <section class="layout">
+        <section class="panel">
+          <h1>Journal</h1>
+
+          <div class="stack">
+            <label for="group-select">Choose group</label>
+            <select id="group-select"></select>
+          </div>
+
+          <div class="stack">
+            <label>Subject</label>
+            <div id="group-subject" class="readout">-</div>
+          </div>
+
+          <div class="stack">
+            <label>Backup</label>
+            <p class="muted helper-text">Save the full journal state as JSON on your computer. If the server crashes, use that JSON to restore everything.</p>
+            <button id="export-button" class="backup-action" type="button">Save JSON Backup</button>
+          </div>
+
+          <div class="stack restore-box">
+            <label for="import-file">Restore from saved JSON backup</label>
+            <input id="import-file" class="backup-file-input" type="file" accept="application/json" />
+            <button id="import-button" class="backup-action" type="button">Restore Backup</button>
+          </div>
+
+          <p id="status" class="status"></p>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="header-row">
+            <div>
+              <h2 id="group-title">No group selected</h2>
+              <p id="lesson-date" class="muted"></p>
+            </div>
+          </div>
+
+          <div id="empty-state" class="empty">Choose a group to view the journal.</div>
+
+          <form id="records-form" class="hidden">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr id="journal-head-row"></tr>
+                </thead>
+                <tbody id="journal-body"></tbody>
+              </table>
+            </div>
+            <button type="submit">Save journal</button>
+          </form>
+        </section>
+      </section>
+
+      <section id="log-panel" class="panel log-panel">
+        <div class="log-header">
+          <div>
+            <h2>Live activity</h2>
+            <p class="muted">Recent user actions and server requests.</p>
+          </div>
+          <div class="log-controls">
+            <input id="log-filter" type="text" placeholder="Filter logs" />
+            <button id="log-refresh" type="button">Refresh</button>
+            <button id="log-toggle" type="button">Hide</button>
+          </div>
+        </div>
+        <div id="log-empty" class="muted">No logs yet.</div>
+        <div id="log-list" class="log-list"></div>
+      </section>
+    </main>
+
+    <script src="/auth.js" defer></script>
+    <script src="/journal.js" defer></script>
+    <script src="/logs.js" defer></script>
+  </body>
+</html>

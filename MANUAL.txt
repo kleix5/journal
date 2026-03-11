@@ -1,0 +1,365 @@
+Class Journal Manual
+
+Purpose
+
+This program is a local web application for a teacher.
+Its logic is split into three clear parts:
+
+1. Group setup
+2. Lesson session
+3. Whole journal
+
+This separation is intentional. The user first creates a group with:
+- group name
+- subject
+- student list
+
+After that, the user opens a different page to:
+- choose one of the existing groups
+- open today's lesson or a past lesson date manually
+- display the whole journal
+- mark presence
+- give or fix scores
+- add comments for each lesson date
+
+The goal is to reduce confusion by not mixing setup actions with daily journal
+actions on the same screen.
+
+
+How to Run
+
+Open terminal in:
+  /Users/pavom/proj/journal
+
+Run:
+  env GOCACHE=/Users/pavom/proj/journal/.gocache go run ./cmd/journal
+
+Then open:
+  http://localhost:8080
+
+
+Pages
+
+/
+- small home page
+- gives clear navigation choices
+
+/manage.html
+- group setup page
+- used to create a group with subject and students
+- also shows already created groups
+
+/lesson.html
+- lesson session page
+- used for a selected lesson date of the chosen group
+- presence and score are shown side by side in one student row
+
+/journal.html
+- whole journal page
+- used for the whole journal table
+- works with the currently chosen group
+
+
+Main User Logic
+
+Step 1. Create a group
+
+On the group setup page the user enters:
+- group name
+- subject
+- students, one per line
+
+When the form is saved, the backend creates one group object containing all of
+that data.
+
+Step 2. Choose a group for a lesson session
+
+On the lesson session page the user chooses one group from the dropdown list.
+The page does not create or edit groups. It only works with the chosen group.
+
+Step 3. Open today's lesson
+
+On the lesson session page the user chooses a lesson date and opens it.
+This can be today or a past date entered manually.
+If that lesson already exists for the group, the backend returns the existing
+lesson instead of creating a duplicate.
+
+Step 4. Mark presence and scores
+
+On the lesson session page the table shows:
+- students as rows
+- presence and score on the same row
+
+This is the page used for current lesson work.
+
+Step 5. View the whole journal
+
+The whole journal page shows the full history as a table:
+- dates are columns
+- students are rows
+
+Inside each date column the teacher can:
+- mark present or absent for each student
+- enter or fix a score for each student
+- write a comment for that lesson session
+
+Step 6. Save changes
+
+Lesson session changes and whole journal changes are both sent to the backend
+and written into local storage.
+
+
+Project Structure
+
+cmd/journal/main.go
+- starts the application
+- creates the server
+- uses data.json for local storage
+- runs on localhost:8080
+
+internal/app/server.go
+- main backend logic
+- data models
+- storage loading and saving
+- API routes for groups and lessons
+
+internal/app/server_test.go
+- automated backend test
+- checks the main group and lesson flow
+
+web/index.html
+- home page
+
+web/manage.html
+- page for creating groups
+
+web/lesson.html
+- page for today's lesson session
+
+web/journal.html
+- page for the full journal matrix
+
+web/lesson.js
+- frontend logic for choosing group, opening a selected lesson date, and saving
+  one lesson session with presence, score, and comment
+
+web/manage.js
+- frontend logic for group creation and group listing
+
+web/journal.js
+- frontend logic for choosing group, opening lesson, rendering the full journal,
+  saving lesson comments, presence, and scores
+
+web/styles.css
+- minimal visual styling
+
+data.json
+- local JSON storage
+- created automatically if missing
+
+
+Data Model
+
+The root object is Store.
+Store contains a list of groups.
+
+Each group contains:
+- id
+- name
+- subject
+- students
+- lessons
+
+Each student contains:
+- id
+- name
+
+Each lesson contains:
+- date
+- comment
+- records
+
+Each record contains:
+- present
+- score
+
+The score is optional.
+If it is set, it must be from 1 to 5.
+
+So the structure is:
+
+Store
+  -> Groups
+     -> Students
+     -> Lessons
+        -> Records by student ID
+
+
+Why the Subject Belongs to the Group
+
+The subject is stored in the group because the setup page creates the academic
+context in one action.
+
+The group is therefore not just a name.
+It represents:
+- who studies
+- what subject this journal is for
+
+That makes both the lesson session page and the whole journal page simpler
+because once a group is selected, the page already knows both the students and
+the subject.
+
+
+Backend Logic
+
+Server startup
+
+When the application starts, NewServer("data.json") is called.
+The server:
+- loads data from data.json
+- creates an empty store if the file does not exist
+- registers routes
+
+Storage
+
+The backend keeps current state in memory and writes it to data.json after each
+change.
+
+Important functions:
+- load()
+- saveLocked()
+
+load()
+- opens the JSON file
+- reads saved groups
+- also supports migration from the older "classes" field if such data exists
+
+saveLocked()
+- writes the full store back to JSON
+- keeps the file readable with indentation
+
+Concurrency
+
+The backend uses a mutex to protect shared state during requests.
+This prevents simultaneous writes from breaking the JSON state in memory.
+
+ID generation
+
+Groups and students get generated IDs.
+These IDs are used instead of names because names can repeat.
+
+
+API Logic
+
+GET /api/groups
+- returns the full list of groups
+
+POST /api/groups
+- creates a new group
+- requires:
+  - non-empty group name
+  - non-empty subject
+  - at least one student
+
+GET /api/groups/{groupID}
+- returns one chosen group
+
+POST /api/groups/{groupID}/lessons
+- creates or returns a lesson for the requested date
+- if no date is sent, uses today's date
+- date format must be YYYY-MM-DD
+
+PUT /api/groups/{groupID}/lessons/{date}/records
+- saves attendance and scores for one lesson date
+- also saves the lesson comment
+- accepts empty score or score from 1 to 5
+- rejects unknown student IDs
+
+
+Frontend Logic
+
+Group setup page
+
+manage.js:
+- reads the group form
+- splits the student textarea into one array of names
+- sends the create request to the backend
+- reloads the group list after save
+- stores the new group ID in localStorage so the journal page can reuse it
+
+Journal page
+
+journal.js:
+- loads all groups
+- chooses current group from:
+  - query string
+  - localStorage
+  - first available group
+- shows selected group name and subject
+- opens today's lesson for that group
+- renders a full table where lesson dates are columns and students are rows
+- renders one editable comment field per lesson date
+- sends updated lesson data back to the backend date by date
+
+
+Why Two Pages Are Better Here
+
+Before this change, creation and journal actions were mixed together.
+That created an unnecessary mental switch for the user.
+
+Now the program has:
+- one page for structure setup
+- one page for daily work
+
+This matches the real workflow better:
+- first define the group
+- then use the journal for that group
+
+
+Validation Rules
+
+The backend checks:
+- group name is required
+- subject is required
+- at least one student is required
+- score must be empty or between 1 and 5
+- lesson records can only reference students from the chosen group
+
+The frontend also blocks invalid actions early, for example trying to open a
+lesson when no group is selected.
+
+
+Current Limits
+
+- one lesson per group per day
+- no group editing or deletion yet
+- no student editing after group creation yet
+- no authentication
+- no reports or export
+- no database
+
+This is still a small localhost project by design.
+
+
+Testing
+
+Run tests:
+  env GOCACHE=/Users/pavom/proj/journal/.gocache go test ./...
+
+Build project:
+  env GOCACHE=/Users/pavom/proj/journal/.gocache go build ./...
+
+
+Summary
+
+The application now follows a cleaner workflow:
+
+1. Create a group with name, subject, and students on one page.
+2. Open a different page for journal work.
+3. Choose a group there.
+4. Open today's lesson when needed.
+5. View and fix the whole journal across all saved dates.
+6. Save presence, scores, and lesson comments.
+
+This keeps the program simpler for the user and keeps the code structure closer
+to the real teaching process.

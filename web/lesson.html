@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson Session</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <nav class="topbar panel">
+        <div class="topbar-nav">
+          <a href="/">Home</a>
+          <a href="/manage.html">Group setup</a>
+          <a href="/lesson.html" class="active">Lesson session</a>
+          <a href="/journal.html">Journal</a>
+        </div>
+        <a class="topbar-action" href="/">Login</a>
+      </nav>
+
+      <section class="layout">
+        <section class="panel">
+          <h1>Lesson Session</h1>
+
+          <div class="stack">
+            <label for="group-select">Choose group</label>
+            <select id="group-select"></select>
+          </div>
+
+          <div class="stack">
+            <label>Subject</label>
+            <div id="group-subject" class="readout">-</div>
+          </div>
+
+          <div class="stack">
+            <label for="lesson-session-date">Lesson date</label>
+            <input id="lesson-session-date" type="date" />
+          </div>
+
+          <button id="lesson-button" type="button">Open lesson session</button>
+          <p id="status" class="status"></p>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="header-row">
+            <div>
+              <h2 id="group-title">No group selected</h2>
+              <p id="lesson-date" class="muted"></p>
+            </div>
+          </div>
+
+          <div class="stack lesson-adjust">
+            <label for="existing-lesson-select">Adjust saved lesson session</label>
+            <div class="inline-actions">
+              <select id="existing-lesson-select"></select>
+              <button id="edit-lesson-button" type="button">Load for Editing</button>
+            </div>
+          </div>
+
+          <div id="empty-state" class="empty">Choose a group to work with the lesson session.</div>
+
+          <form id="lesson-form" class="hidden">
+            <div class="stack">
+              <label for="lesson-theme">Lesson theme</label>
+              <textarea id="lesson-theme" rows="3" placeholder="Theme or plan for this lesson"></textarea>
+            </div>
+
+            <div class="stack">
+              <label for="lesson-term">Term</label>
+              <input id="lesson-term" type="text" placeholder="Quarter 3" />
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Present</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody id="lesson-body"></tbody>
+              </table>
+            </div>
+
+            <button type="submit">Save lesson</button>
+          </form>
+        </section>
+      </section>
+
+      <section id="log-panel" class="panel log-panel">
+        <div class="log-header">
+          <div>
+            <h2>Live activity</h2>
+            <p class="muted">Recent user actions and server requests.</p>
+          </div>
+          <div class="log-controls">
+            <input id="log-filter" type="text" placeholder="Filter logs" />
+            <button id="log-refresh" type="button">Refresh</button>
+            <button id="log-toggle" type="button">Hide</button>
+          </div>
+        </div>
+        <div id="log-empty" class="muted">No logs yet.</div>
+        <div id="log-list" class="log-list"></div>
+      </section>
+    </main>
+
+    <script src="/auth.js" defer></script>
+    <script src="/lesson.js" defer></script>
+    <script src="/logs.js" defer></script>
+  </body>
+</html>

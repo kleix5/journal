@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Group Setup</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <nav class="topbar panel">
+        <div class="topbar-nav">
+          <a href="/">Home</a>
+          <a href="/manage.html" class="active">Group setup</a>
+          <a href="/lesson.html">Lesson session</a>
+          <a href="/journal.html">Journal</a>
+        </div>
+        <a class="topbar-action" href="/">Login</a>
+      </nav>
+
+      <section class="layout">
+        <section class="panel">
+          <h1>Create Group</h1>
+          <form id="group-form" class="stack">
+            <label for="group-name">Group name</label>
+            <input id="group-name" name="name" type="text" placeholder="Group 10A" required />
+
+            <label for="group-subject">Subject</label>
+            <input id="group-subject" name="subject" type="text" placeholder="Mathematics" required />
+
+            <label for="student-list">Students</label>
+            <textarea id="student-list" name="students" rows="12" placeholder="One student per line" required></textarea>
+
+            <button type="submit">Save group</button>
+          </form>
+          <p id="status" class="status"></p>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="header-row">
+            <h2>Existing Groups</h2>
+            <span id="group-count" class="muted"></span>
+          </div>
+          <div id="group-list" class="stack"></div>
+        </section>
+      </section>
+
+      <section id="log-panel" class="panel log-panel">
+        <div class="log-header">
+          <div>
+            <h2>Live activity</h2>
+            <p class="muted">Recent user actions and server requests.</p>
+          </div>
+          <div class="log-controls">
+            <input id="log-filter" type="text" placeholder="Filter logs" />
+            <button id="log-refresh" type="button">Refresh</button>
+            <button id="log-toggle" type="button">Hide</button>
+          </div>
+        </div>
+        <div id="log-empty" class="muted">No logs yet.</div>
+        <div id="log-list" class="log-list"></div>
+      </section>
+    </main>
+
+    <script src="/auth.js" defer></script>
+    <script src="/manage.js" defer></script>
+    <script src="/logs.js" defer></script>
+  </body>
+</html>
