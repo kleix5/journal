@@ -231,13 +231,6 @@ lessonButton.addEventListener("click", async () => {
     });
     await loadGroups();
     setStatus("Lesson session is ready.");
-    if (window.appLog) {
-      const group = selectedGroup();
-      window.appLog("lesson.open", `Opened lesson for ${selectedLessonDate()}`, {
-        groupId: String(group?.id || state.selectedGroupId),
-        date: String(selectedLessonDate()),
-      });
-    }
   } catch (error) {
     setStatus(error.message);
   }
@@ -257,13 +250,6 @@ editLessonButton.addEventListener("click", () => {
   lessonSessionDate.value = existingLessonSelect.value;
   render();
   setStatus("Saved lesson loaded for editing.");
-  if (window.appLog) {
-    const group = selectedGroup();
-    window.appLog("lesson.load", `Loaded saved lesson ${existingLessonSelect.value}`, {
-      groupId: String(group?.id || state.selectedGroupId),
-      date: String(existingLessonSelect.value),
-    });
-  }
 });
 
 lessonForm.addEventListener("submit", async (event) => {
@@ -296,12 +282,6 @@ lessonForm.addEventListener("submit", async (event) => {
 
     await loadGroups();
     setStatus("Lesson saved.");
-    if (window.appLog) {
-      window.appLog("lesson.save", `Saved lesson ${state.lesson.date}`, {
-        groupId: String(group.id),
-        date: String(state.lesson.date),
-      });
-    }
   } catch (error) {
     setStatus(error.message);
   }

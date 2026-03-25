@@ -279,12 +279,6 @@ recordsForm.addEventListener("submit", async (event) => {
 
     await loadGroups();
     setStatus("Journal saved.");
-    if (window.appLog) {
-      window.appLog("journal.save", "Saved journal records", {
-        groupId: String(group.id),
-        lessons: String(lessons.length),
-      });
-    }
   } catch (error) {
     setStatus(error.message);
   }
@@ -308,9 +302,6 @@ exportButton.addEventListener("click", async () => {
     link.remove();
     URL.revokeObjectURL(url);
     setStatus("Journal backup saved as JSON.");
-    if (window.appLog) {
-      window.appLog("journal.export", "Exported journal backup");
-    }
   } catch (error) {
     setStatus(error.message);
   }
@@ -338,9 +329,6 @@ importButton.addEventListener("click", async () => {
     importFile.value = "";
     await loadGroups();
     setStatus("Journal state restored from JSON backup.");
-    if (window.appLog) {
-      window.appLog("journal.import", "Imported journal backup");
-    }
   } catch (error) {
     setStatus(error.message);
   }

@@ -1,3 +1,10 @@
 .DS_Store
 .cache/
 .gocache/
+garbege/
+data.json
+*.log
+bin/
+dist/
+coverage.out
+

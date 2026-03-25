@@ -84,13 +84,6 @@ groupForm.addEventListener("submit", async (event) => {
     groupForm.reset();
     await loadGroups();
     setStatus("Group saved.");
-    if (window.appLog) {
-      window.appLog("group.create", `Created ${group.name}`, {
-        groupId: String(group.id || ""),
-        subject: String(group.subject || ""),
-        students: String(group.students?.length || 0),
-      });
-    }
   } catch (error) {
     setStatus(error.message);
   }

@@ -10,9 +10,7 @@ import (
 	"net/http"
 	"net/mail"
 	"os"
-	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -66,11 +64,8 @@ type Repository interface {
 }
 
 type Server struct {
-	mux   *http.ServeMux
-	repo  Repository
-	mu    sync.Mutex
-	logs  []LogEntry
-	logMu sync.Mutex
+	mux  *http.ServeMux
+	repo Repository
 }
 
 func NewServer(_ string) (*Server, error) {
@@ -97,7 +92,7 @@ func NewServerWithRepository(repo Repository) *Server {
 }
 
 func (s *Server) Start(addr string) error {
-	return http.ListenAndServe(addr, s.logMiddleware(s.mux))
+	return http.ListenAndServe(addr, s.mux)
 }
 
 func (s *Server) Close() error {
@@ -115,7 +110,6 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/api/groups/", s.handleGroupRoutes)
 	s.mux.HandleFunc("/api/journal/export", s.handleExport)
 	s.mux.HandleFunc("/api/journal/import", s.handleImport)
-	s.mux.HandleFunc("/api/logs", s.handleLogs)
 }
 
 func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
@@ -164,7 +158,6 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.logInfo("server", "user.register", map[string]string{"email": email})
 	writeJSON(w, http.StatusCreated, user)
 }
 
@@ -201,7 +194,6 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.logInfo("server", "user.login", map[string]string{"email": email})
 	writeJSON(w, http.StatusOK, user)
 }
 
@@ -248,12 +240,6 @@ func (s *Server) handleGroups(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		s.logInfo("server", "group.create", map[string]string{
-			"groupId": group.ID,
-			"name":    group.Name,
-			"subject": group.Subject,
-			"count":   fmt.Sprintf("%d", len(group.Students)),
-		})
 		writeJSON(w, http.StatusCreated, group)
 	default:
 		writeMethodNotAllowed(w)
@@ -346,10 +332,6 @@ func (s *Server) createLesson(w http.ResponseWriter, r *http.Request, groupID st
 		return
 	}
 
-	s.logInfo("server", "lesson.create", map[string]string{
-		"groupId": groupID,
-		"date":    lessonDate,
-	})
 	writeJSON(w, http.StatusCreated, lesson)
 }
 
@@ -395,10 +377,6 @@ func (s *Server) updateLessonRecords(w http.ResponseWriter, r *http.Request, gro
 		return
 	}
 
-	s.logInfo("server", "lesson.update", map[string]string{
-		"groupId": groupID,
-		"date":    lessonDate,
-	})
 	writeJSON(w, http.StatusOK, lesson)
 }
 
@@ -414,9 +392,6 @@ func (s *Server) handleExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.logInfo("server", "journal.export", map[string]string{
-		"groups": fmt.Sprintf("%d", len(store.Groups)),
-	})
 	filename := fmt.Sprintf("journal-export-%s.json", time.Now().Format("20060102-150405"))
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filename))
@@ -442,9 +417,6 @@ func (s *Server) handleImport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.logInfo("server", "journal.import", map[string]string{
-		"groups": fmt.Sprintf("%d", len(store.Groups)),
-	})
 	writeJSON(w, http.StatusOK, map[string]string{"status": "imported"})
 }
 
@@ -587,146 +559,4 @@ func writeError(w http.ResponseWriter, status int, message string) {
 
 func writeMethodNotAllowed(w http.ResponseWriter) {
 	writeError(w, http.StatusMethodNotAllowed, "method not allowed")
-}
-
-type LogEntry struct {
-	ID      string            `json:"id"`
-	Time    string            `json:"time"`
-	Level   string            `json:"level"`
-	Source  string            `json:"source"`
-	Message string            `json:"message"`
-	Meta    map[string]string `json:"meta,omitempty"`
-}
-
-type statusRecorder struct {
-	http.ResponseWriter
-	status int
-}
-
-func (r *statusRecorder) WriteHeader(statusCode int) {
-	r.status = statusCode
-	r.ResponseWriter.WriteHeader(statusCode)
-}
-
-func (s *Server) logMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.URL.Path, "/api/logs") {
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
-		start := time.Now()
-		next.ServeHTTP(recorder, r)
-		duration := time.Since(start)
-
-		s.logInfo("request", "http.request", map[string]string{
-			"method": r.Method,
-			"path":   r.URL.Path,
-			"status": fmt.Sprintf("%d", recorder.status),
-			"ms":     fmt.Sprintf("%d", duration.Milliseconds()),
-		})
-	})
-}
-
-func (s *Server) logInfo(source, message string, meta map[string]string) {
-	s.appendLog(LogEntry{
-		ID:      newID(),
-		Time:    time.Now().UTC().Format(time.RFC3339),
-		Level:   "info",
-		Source:  source,
-		Message: message,
-		Meta:    cloneLogMeta(meta),
-	})
-}
-
-func (s *Server) appendLog(entry LogEntry) {
-	s.logMu.Lock()
-	defer s.logMu.Unlock()
-
-	if s.logs == nil {
-		s.logs = make([]LogEntry, 0, 200)
-	}
-	s.logs = append(s.logs, entry)
-	if len(s.logs) > 200 {
-		s.logs = s.logs[len(s.logs)-200:]
-	}
-}
-
-func (s *Server) listLogs(limit int) []LogEntry {
-	s.logMu.Lock()
-	defer s.logMu.Unlock()
-
-	if limit <= 0 || limit > len(s.logs) {
-		limit = len(s.logs)
-	}
-	start := len(s.logs) - limit
-	result := make([]LogEntry, limit)
-	copy(result, s.logs[start:])
-	return result
-}
-
-func cloneLogMeta(meta map[string]string) map[string]string {
-	if meta == nil {
-		return nil
-	}
-	copied := make(map[string]string, len(meta))
-	for key, value := range meta {
-		copied[key] = value
-	}
-	return copied
-}
-
-func (s *Server) handleLogs(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		limit := 200
-		if raw := strings.TrimSpace(r.URL.Query().Get("limit")); raw != "" {
-			if parsed, err := strconv.Atoi(raw); err == nil && parsed > 0 {
-				limit = parsed
-			}
-		}
-		writeJSON(w, http.StatusOK, map[string]any{
-			"logs": s.listLogs(limit),
-		})
-	case http.MethodPost:
-		var req struct {
-			Action string            `json:"action"`
-			Detail string            `json:"detail"`
-			Meta   map[string]string `json:"meta"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			writeError(w, http.StatusBadRequest, "invalid request body")
-			return
-		}
-
-		action := strings.TrimSpace(req.Action)
-		detail := strings.TrimSpace(req.Detail)
-		if action == "" && detail == "" {
-			writeError(w, http.StatusBadRequest, "action or detail is required")
-			return
-		}
-
-		entry := LogEntry{
-			ID:      newID(),
-			Time:    time.Now().UTC().Format(time.RFC3339),
-			Level:   "info",
-			Source:  "client",
-			Message: action,
-			Meta:    cloneLogMeta(req.Meta),
-		}
-		if detail != "" {
-			if entry.Meta == nil {
-				entry.Meta = map[string]string{}
-			}
-			entry.Meta["detail"] = detail
-		}
-		if entry.Message == "" {
-			entry.Message = "client.action"
-		}
-		s.appendLog(entry)
-		writeJSON(w, http.StatusCreated, entry)
-	default:
-		writeMethodNotAllowed(w)
-	}
 }
