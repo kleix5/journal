@@ -57,6 +57,13 @@ function selectedLessonDate() {
   return lessonSessionDate.value || currentDate();
 }
 
+function journalURL(groupID, lessonDateValue) {
+  const params = new URLSearchParams();
+  params.set("group", groupID);
+  params.set("date", lessonDateValue);
+  return `/journal.html?${params.toString()}`;
+}
+
 function initialSelectedGroupId(groups) {
   const queryId = new URLSearchParams(window.location.search).get("group");
   const savedId = localStorage.getItem("selectedGroupId");
@@ -225,12 +232,13 @@ lessonButton.addEventListener("click", async () => {
   }
 
   try {
+    const lessonDateValue = selectedLessonDate();
     await request(`/api/groups/${state.selectedGroupId}/lessons`, {
       method: "POST",
-      body: JSON.stringify({ date: selectedLessonDate() }),
+      body: JSON.stringify({ date: lessonDateValue }),
     });
-    await loadGroups();
-    setStatus("Lesson session is ready.");
+    localStorage.setItem("selectedGroupId", state.selectedGroupId);
+    window.location.assign(journalURL(state.selectedGroupId, lessonDateValue));
   } catch (error) {
     setStatus(error.message);
   }

@@ -50,8 +50,23 @@ function currentDate() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function selectedLessonDateFromQuery() {
+  return new URLSearchParams(window.location.search).get("date") || "";
+}
+
 function sortedLessons(group) {
   return [...group.lessons].sort((left, right) => left.date.localeCompare(right.date));
+}
+
+function scrollToLesson(date) {
+  if (!date) {
+    return;
+  }
+
+  const target = journalBody.querySelector(`[data-date="${date}"]`);
+  if (target) {
+    target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }
 }
 
 function renderSelect() {
@@ -190,9 +205,16 @@ function renderRecords() {
     return;
   }
 
+  const requestedLessonDate = selectedLessonDateFromQuery();
+  const requestedLesson = lessons.find((lesson) => lesson.date === requestedLessonDate);
   const todayLesson = lessons.find((lesson) => lesson.date === currentDate());
-  lessonDate.textContent = todayLesson ? `Today's lesson: ${todayLesson.date}` : `Last lesson: ${lessons[lessons.length - 1].date}`;
+  lessonDate.textContent = requestedLesson
+    ? `Opened lesson: ${requestedLesson.date}`
+    : todayLesson
+      ? `Today's lesson: ${todayLesson.date}`
+      : `Last lesson: ${lessons[lessons.length - 1].date}`;
   renderJournalTable(group);
+  scrollToLesson(requestedLessonDate);
   emptyState.classList.add("hidden");
   recordsForm.classList.remove("hidden");
 }
