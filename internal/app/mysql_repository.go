@@ -107,6 +107,28 @@ func (r *MySQLRepository) GetGroup(id string) (Group, error) {
 	return groups[0], nil
 }
 
+func (r *MySQLRepository) DeleteGroup(id string) error {
+	groupID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return errors.New("group not found")
+	}
+
+	result, err := r.db.Exec(`DELETE FROM class_groups WHERE id = ?`, groupID)
+	if err != nil {
+		return fmt.Errorf("delete group: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("read deleted group count: %w", err)
+	}
+	if rowsAffected == 0 {
+		return errors.New("group not found")
+	}
+
+	return nil
+}
+
 func (r *MySQLRepository) CreateUser(email, passwordHash string) (User, error) {
 	result, err := r.db.Exec(`INSERT INTO users (email, password_hash) VALUES (?, ?)`, email, passwordHash)
 	if err != nil {
@@ -533,7 +555,7 @@ func (r *MySQLRepository) listGroups(q queryer, ids ...int64) ([]Group, error) {
 			if !ok {
 				lesson = &Lesson{
 					ID:      strconv.FormatInt(lessonID.Int64, 10),
-					Date:    lessonDate.String,
+					Date:    normalizeLessonDate(lessonDate.String),
 					Theme:   lessonTheme.String,
 					Term:    lessonTerm.String,
 					Records: map[string]AttendanceRecord{},
@@ -571,6 +593,17 @@ func (r *MySQLRepository) listGroups(q queryer, ids ...int64) ([]Group, error) {
 		result = append(result, *group)
 	}
 	return result, nil
+}
+
+func normalizeLessonDate(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return ""
+	}
+	if len(trimmed) >= len("2006-01-02") {
+		return trimmed[:len("2006-01-02")]
+	}
+	return trimmed
 }
 
 func (r *MySQLRepository) lessonRecords(q queryer, lessonID int64) (map[string]AttendanceRecord, error) {

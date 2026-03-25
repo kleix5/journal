@@ -50,6 +50,20 @@ function currentDate() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function formatLessonDate(value) {
+  const normalized = String(value || "").slice(0, 10);
+  if (!normalized) {
+    return "";
+  }
+
+  const date = new Date(`${normalized}T12:00:00Z`);
+  if (Number.isNaN(date.getTime())) {
+    return normalized;
+  }
+
+  return `${normalized} ${new Intl.DateTimeFormat("en-US", { weekday: "long", timeZone: "UTC" }).format(date)}`;
+}
+
 function selectedLessonDateFromQuery() {
   return new URLSearchParams(window.location.search).get("date") || "";
 }
@@ -92,7 +106,7 @@ function renderSelect() {
 
 function renderJournalTable(group) {
   const lessons = sortedLessons(group);
-  journalHeadRow.innerHTML = `<th>Student</th>${lessons.map((lesson) => `<th>${lesson.date}</th>`).join("")}`;
+  journalHeadRow.innerHTML = `<th>Student</th>${lessons.map((lesson) => `<th>${formatLessonDate(lesson.date)}</th>`).join("")}`;
 
   const themeRow = `
     <tr>
@@ -209,10 +223,10 @@ function renderRecords() {
   const requestedLesson = lessons.find((lesson) => lesson.date === requestedLessonDate);
   const todayLesson = lessons.find((lesson) => lesson.date === currentDate());
   lessonDate.textContent = requestedLesson
-    ? `Opened lesson: ${requestedLesson.date}`
+    ? `Opened lesson: ${formatLessonDate(requestedLesson.date)}`
     : todayLesson
-      ? `Today's lesson: ${todayLesson.date}`
-      : `Last lesson: ${lessons[lessons.length - 1].date}`;
+      ? `Today's lesson: ${formatLessonDate(todayLesson.date)}`
+      : `Last lesson: ${formatLessonDate(lessons[lessons.length - 1].date)}`;
   renderJournalTable(group);
   scrollToLesson(requestedLessonDate);
   emptyState.classList.add("hidden");

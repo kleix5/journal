@@ -51,6 +51,19 @@ func (r *MemoryRepository) GetGroup(id string) (Group, error) {
 	return Group{}, errors.New("group not found")
 }
 
+func (r *MemoryRepository) DeleteGroup(id string) error {
+	for i, group := range r.store.Groups {
+		if group.ID != id {
+			continue
+		}
+
+		r.store.Groups = append(r.store.Groups[:i], r.store.Groups[i+1:]...)
+		return nil
+	}
+
+	return errors.New("group not found")
+}
+
 func (r *MemoryRepository) CreateLesson(groupID, date string) (Lesson, error) {
 	for gi := range r.store.Groups {
 		group := &r.store.Groups[gi]

@@ -55,6 +55,7 @@ type Repository interface {
 	ListGroups() (Store, error)
 	CreateGroup(name, subject string, students []Student) (Group, error)
 	GetGroup(id string) (Group, error)
+	DeleteGroup(id string) error
 	CreateLesson(groupID, date string) (Lesson, error)
 	UpdateLessonRecords(groupID, lessonDate string, lesson Lesson) (Lesson, error)
 	ImportStore(store Store) error
@@ -256,11 +257,14 @@ func (s *Server) handleGroupRoutes(w http.ResponseWriter, r *http.Request) {
 
 	groupID := parts[0]
 	if len(parts) == 1 {
-		if r.Method != http.MethodGet {
+		switch r.Method {
+		case http.MethodGet:
+			s.handleGroup(w, groupID)
+		case http.MethodDelete:
+			s.deleteGroup(w, groupID)
+		default:
 			writeMethodNotAllowed(w)
-			return
 		}
-		s.handleGroup(w, groupID)
 		return
 	}
 
@@ -280,6 +284,19 @@ func (s *Server) handleGroup(w http.ResponseWriter, groupID string) {
 	}
 
 	writeJSON(w, http.StatusOK, group)
+}
+
+func (s *Server) deleteGroup(w http.ResponseWriter, groupID string) {
+	if err := s.repo.DeleteGroup(groupID); err != nil {
+		if err.Error() == "group not found" {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to delete group")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
 }
 
 func (s *Server) handleLessons(w http.ResponseWriter, r *http.Request, groupID string, rest []string) {

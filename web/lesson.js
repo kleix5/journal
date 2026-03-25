@@ -53,6 +53,20 @@ function currentDate() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function formatLessonDate(value) {
+  const normalized = String(value || "").slice(0, 10);
+  if (!normalized) {
+    return "";
+  }
+
+  const date = new Date(`${normalized}T12:00:00Z`);
+  if (Number.isNaN(date.getTime())) {
+    return normalized;
+  }
+
+  return `${normalized} ${new Intl.DateTimeFormat("en-US", { weekday: "long", timeZone: "UTC" }).format(date)}`;
+}
+
 function selectedLessonDate() {
   return lessonSessionDate.value || currentDate();
 }
@@ -145,7 +159,8 @@ function renderExistingLessons(group) {
   lessons.forEach((lesson) => {
     const option = document.createElement("option");
     option.value = lesson.date;
-    option.textContent = lesson.theme ? `${lesson.date} - ${lesson.theme}` : lesson.date;
+    const label = formatLessonDate(lesson.date);
+    option.textContent = lesson.theme ? `${label} - ${lesson.theme}` : label;
     option.selected = lesson.date === selectedLessonDate();
     existingLessonSelect.appendChild(option);
   });
@@ -200,7 +215,7 @@ function render() {
     return;
   }
 
-  lessonDate.textContent = `Lesson date: ${state.lesson.date}`;
+  lessonDate.textContent = `Lesson date: ${formatLessonDate(state.lesson.date)}`;
   lessonTheme.value = state.lesson.theme || "";
   lessonTerm.value = state.lesson.term || "";
   renderLessonRows(group);

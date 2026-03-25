@@ -57,6 +57,7 @@ function renderGroups(groups) {
       <div class="actions">
         <a class="button-link" href="/lesson.html?group=${group.id}">Open session</a>
         <a class="button-link" href="/journal.html?group=${group.id}">Open journal</a>
+        <button type="button" class="delete-group-button" data-group-id="${group.id}" data-group-name="${escapeHTML(group.name)}">Remove group</button>
       </div>
     `;
     groupList.appendChild(node);
@@ -85,6 +86,38 @@ groupForm.addEventListener("submit", async (event) => {
     await loadGroups();
     setStatus("Group saved.");
   } catch (error) {
+    setStatus(error.message);
+  }
+});
+
+groupList.addEventListener("click", async (event) => {
+  const button = event.target.closest(".delete-group-button");
+  if (!button) {
+    return;
+  }
+
+  const groupID = String(button.dataset.groupId || "");
+  const groupName = String(button.dataset.groupName || "").trim();
+  if (!groupID) {
+    return;
+  }
+
+  const confirmed = window.confirm(`Remove group "${groupName}"? This will delete its lessons and scores too.`);
+  if (!confirmed) {
+    return;
+  }
+
+  button.disabled = true;
+
+  try {
+    await request(`/api/groups/${groupID}`, { method: "DELETE" });
+    if (localStorage.getItem("selectedGroupId") === groupID) {
+      localStorage.removeItem("selectedGroupId");
+    }
+    await loadGroups();
+    setStatus(`Group "${groupName}" removed.`);
+  } catch (error) {
+    button.disabled = false;
     setStatus(error.message);
   }
 });

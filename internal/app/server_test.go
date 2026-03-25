@@ -120,6 +120,36 @@ func TestCreateLessonRejectsInvalidDate(t *testing.T) {
 	}
 }
 
+func TestDeleteGroupFlow(t *testing.T) {
+	server := NewServerWithRepository(NewMemoryRepository())
+
+	groupReq := httptest.NewRequest(http.MethodPost, "/api/groups", bytes.NewBufferString(`{"name":"Group D","subject":"Biology","students":["Ira"]}`))
+	groupRec := httptest.NewRecorder()
+	server.handleGroups(groupRec, groupReq)
+	if groupRec.Code != http.StatusCreated {
+		t.Fatalf("create group status = %d, want %d", groupRec.Code, http.StatusCreated)
+	}
+
+	var groupResp Group
+	if err := json.Unmarshal(groupRec.Body.Bytes(), &groupResp); err != nil {
+		t.Fatalf("unmarshal group: %v", err)
+	}
+
+	deleteReq := httptest.NewRequest(http.MethodDelete, "/api/groups/"+groupResp.ID, nil)
+	deleteRec := httptest.NewRecorder()
+	server.handleGroupRoutes(deleteRec, deleteReq)
+	if deleteRec.Code != http.StatusOK {
+		t.Fatalf("delete group status = %d, want %d", deleteRec.Code, http.StatusOK)
+	}
+
+	getReq := httptest.NewRequest(http.MethodGet, "/api/groups/"+groupResp.ID, nil)
+	getRec := httptest.NewRecorder()
+	server.handleGroupRoutes(getRec, getReq)
+	if getRec.Code != http.StatusNotFound {
+		t.Fatalf("get deleted group status = %d, want %d", getRec.Code, http.StatusNotFound)
+	}
+}
+
 func TestImportExportFlow(t *testing.T) {
 	server := NewServerWithRepository(NewMemoryRepository())
 
